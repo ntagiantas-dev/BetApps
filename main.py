@@ -6,7 +6,7 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 
 # 1. Φόρτωση των μεταβλητών από το αρχείο .env
 load_dotenv()
-BOT_TOKEN = os.getenv("HTTP_API_TOKEN")
+BOT_TOKEN = os.getenv("HTTP_API_TOKEN").strip()
 
 # Έλεγχος αν διαβάστηκε σωστά το token
 if not BOT_TOKEN:
