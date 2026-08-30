@@ -4,13 +4,20 @@ from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 
-# 1. Φόρτωση των μεταβλητών από το αρχείο .env
-load_dotenv()
-BOT_TOKEN = os.getenv("HTTP_API_TOKEN").strip()
+# 1. Φόρτωση των μεταβλητών: 
+# Αν υπάρχει τοπικά το αρχείο .env (στον υπολογιστή σου), το διαβάζει. 
+# Στο Render δεν υπάρχει, οπότε το προσπερνάει και διαβάζει κατευθείαν το Environment Variable του Render.
+if os.path.exists(".env"):
+    load_dotenv()
+
+BOT_TOKEN = os.getenv("HTTP_API_TOKEN")
 
 # Έλεγχος αν διαβάστηκε σωστά το token
 if not BOT_TOKEN:
-    raise ValueError("⚠️ Προσοχή: Δεν βρέθηκε το HTTP_API_TOKEN στο αρχείο .env!")
+    raise ValueError("⚠️ Προσοχή: Δεν βρέθηκε το HTTP_API_TOKEN!")
+
+# Καθαρισμός τυχόν αόρατων κενών (spaces/enters)
+BOT_TOKEN = BOT_TOKEN.strip()
 
 # Ενεργοποίηση καταγραφής (logging) για να βλέπουμε τι γίνεται στην κονσόλα
 logging.basicConfig(
