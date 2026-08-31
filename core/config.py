@@ -1,8 +1,8 @@
 # config.py
 import os
 
-# Το βασικό URL του BSD Football API
-BASE_URL = "https://sports.bzzoiro.com/api/v2"
+# Το βασικό URL του BSD Football API (με το /football/ στη μέση)
+BASE_URL = "https://sports.bzzoiro.com/football/api/v2"
 
 # Διαβάζει το API key αυτόματα από τις Environment Variables του Render
 API_KEY = os.getenv("BSD_API_KEY", "MISSING_API_KEY")
