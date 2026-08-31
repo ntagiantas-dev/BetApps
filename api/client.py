@@ -6,9 +6,7 @@ from core.config import BASE_URL
 class BSDAPIClient:
     def __init__(self):
         self.base_url = BASE_URL
-        # Παίρνουμε το κλειδί είτε από το config είτε απευθείας από το os.getenv για ασφάλεια στο Render
         api_key = os.getenv("BSD_API_KEY")
-        
         self.headers = {
             "Authorization": f"Token {api_key}",
             "Accept": "application/json",
@@ -41,7 +39,7 @@ class BSDAPIClient:
 
     def get_live_events(self):
         """
-        Τραβάει τα live γεγονότα/αγώνες για παρακολούθηση ροής.
+        Τραβάει τα live γεγονότα/αγώνες.
         """
         endpoint = f"{self.base_url}/events/live/"
         
