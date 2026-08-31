@@ -1,64 +1,51 @@
-import os
-import logging
-from dotenv import load_dotenv
-from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
+# main.py
+from services.match_service import MatchService
+from ui.components import LiveMatchWidget
+from bot.telegram_bot import LiveStatBot
 
-# 1. Φόρτωση των μεταβλητών: 
-# Αν υπάρχει τοπικά το αρχείο .env (στον υπολογιστή σου), το διαβάζει. 
-# Στο Render δεν υπάρχει, οπότε το προσπερνάει και διαβάζει κατευθείαν το Environment Variable του Render.
-if os.path.exists(".env"):
-    load_dotenv()
+def main():
+    print("=" * 60)
+    print("🚀 LIVE STAT ARENA - v0.1 (Starting Up...)")
+    print("=" * 60)
 
-BOT_TOKEN = os.getenv("HTTP_API_TOKEN")
+    # 1. Αρχικοποίηση του Match Service (που διαχειρίζεται API, DB & Logic)
+    service = MatchService()
 
-# Έλεγχος αν διαβάστηκε σωστά το token
-if not BOT_TOKEN:
-    raise ValueError("⚠️ Προσοχή: Δεν βρέθηκε το HTTP_API_TOKEN!")
+    # 2. Συγχρονισμός Pregame δεδομένων για τις 5 ελληνικές ομάδες
+    print("\n[Step 1] Εκτέλεση συγχρονισμού Pregame Data...")
+    success = service.sync_greek_teams_pregame()
+    
+    if success:
+        print("[Step 1] Ο συγχρονισμός ολοκληρώθηκε επιτυχώς!")
+    else:
+        print("[Step 1] Ο συγχρονισμός αντιμετώπισε πρόβλημα (ελέγξτε το API key).")
 
-# Καθαρισμός τυχόν αόρατων κενών (spaces/enters)
-BOT_TOKEN = BOT_TOKEN.strip()
+    # 3. Δοκιμή Live Tick (Έλεγχος ζωντανών αγώνων & καταγραφή xG για γραφικά)
+    print("\n[Step 2] Έλεγχος Live Αγώνων & xG Logging...")
+    service.process_live_tick()
 
-# Ενεργοποίηση καταγραφής (logging) για να βλέπουμε τι γίνεται στην κονσόλα
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+    # 4. Επίδειξη UI Widget & Bot Notification
+    print("\n[Step 3] Δοκιμή UI Components & Bot Simulation...")
+    
+    # Παράδειγμα χρήσης του UI Widget για κατοχή και momentum
+    widget = LiveMatchWidget({"home_possession": "58%", "away_possession": "42%"})
+    possession = widget.render_possession_stats()
+    momentum = widget.render_momentum_bar(possession["home_possession"], possession["away_possession"])
+    print(f"UI Component Test -> {momentum}")
 
-# 2. Εντολή /start (Όταν ο χρήστης ξεκινάει το bot)
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_name = update.effective_user.first_name
-    welcome_message = (
-        f"Γειά σου, {user_name}! ⚽\n"
-        "Καλώς ήρθες στο Live Match Bot.\n\n"
-        "Χρησιμοποίησε την εντολή /match για να δεις τη ζωντανή ροή."
+    # Παράδειγμα ειδοποίησης Bot
+    bot = LiveStatBot(token="DUMMY_TOKEN")
+    bot.send_match_update(
+        chat_id="123456789",
+        team_a="Olympiacos",
+        team_b="Panathinaikos",
+        score="1 - 0",
+        momentum_info=momentum
     )
-    await update.message.reply_text(welcome_message)
 
-# 3. Εντολή /match (Το template που σχεδιάσαμε στη Φάση 2)
-async def live_match(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    ticker_text = (
-        "🔴 **LIVE: Ολυμπιακός - Παναθηναϊκός** | 1-0\n"
-        "-----------------------------------\n"
-        "⏱️ **74'** | ⚠️ Επικίνδυνο φάουλ κερδίζει ο Ολυμπιακός έξω από την περιοχή.\n\n"
-        "📊 **LIVE STATS:**\n"
-        "⚽ Κατοχή: 52% - 48%\n"
-        "🎯 Σουτ (Εντός): 4(2) - 3(1)\n"
-        "🚩 Κόρνερ: 3 - 2\n\n"
-        "_Powered by Main Sponsor_ ⚡"
-    )
-    
-    await update.message.reply_text(ticker_text, parse_mode="Markdown")
+    print("\n" + "=" * 60)
+    print("✨ Η εφαρμογή v0.1 έτρεξε με επιτυχία και η βάση ενημερώθηκε!")
+    print("=" * 60)
 
-if __name__ == '__main__':
-    # Δημιουργία της εφαρμογής του bot
-    application = ApplicationBuilder().token(BOT_TOKEN).build()
-    
-    # Σύνδεση των εντολών με τις συναρτήσεις
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("match", live_match))
-    
-    print("🚀 Το Live Match Bot ξεκίνησε και ακούει...")
-    
-    # Εκκίνηση του bot (Polling)
-    application.run_polling()
+if __name__ == "__main__":
+    main()
