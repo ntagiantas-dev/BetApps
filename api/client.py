@@ -1,13 +1,18 @@
 # api/client.py
+import os
 import requests
-from core.config import BASE_URL, API_KEY
+from core.config import BASE_URL
 
 class BSDAPIClient:
     def __init__(self):
         self.base_url = BASE_URL
+        # Παίρνουμε το κλειδί είτε από το config είτε απευθείας από το os.getenv για ασφάλεια στο Render
+        api_key = os.getenv("BSD_API_KEY")
+        
         self.headers = {
-            "Authorization": API_KEY,
-            "Accept": "application/json"
+            "Authorization": f"Token {api_key}",
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
         }
 
     def get_greek_teams(self):
@@ -45,7 +50,7 @@ class BSDAPIClient:
             if response.status_code == 200:
                 return response.json()
             else:
-                print(f"Σφάλμα Live API: {response.status_code}")
+                print(f"Σφάλμα Live API: {response.status_code} - {response.text}")
                 return None
         except Exception as e:
             print(f"Σφάλμα σύνδεσης στα live events: {e}")
